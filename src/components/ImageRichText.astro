@@ -1,0 +1,22 @@
+---
+import { Image } from 'astro:assets';
+
+interface Props {
+  url: string;
+  description?: string;
+  width: number;
+  height: number;
+}
+
+const { url, description = '', width, height } = Astro.props;
+---
+
+<div class="w-full my-8">
+  <Image 
+    src={url}
+    alt={description}
+    width={width}
+    height={height}
+    class="w-full h-auto object-cover rounded-lg"
+  />
+</div>

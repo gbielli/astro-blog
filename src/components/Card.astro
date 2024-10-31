@@ -1,0 +1,26 @@
+---
+// src/components/Card.astro
+const { fields } = Astro.props;
+console.log("Card entry:", fields);
+const { cardTitle, productAdvantages } = fields;
+
+interface Fields {
+  cardTitle: string;
+  productAdvantages: string[];
+}
+
+interface Props {
+  fields: Fields;
+}
+
+
+---
+
+<div class="card p-4 border rounded">
+  <h3>{cardTitle}</h3>
+  {productAdvantages.map((advantage) => {
+    return <p>{advantage}</p>;
+  })}
+
+  {/* Autres champs de votre carte */}
+</div>

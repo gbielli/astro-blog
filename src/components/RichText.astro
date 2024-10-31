@@ -1,0 +1,62 @@
+---
+import { documentToHtmlString } from '@contentful/rich-text-html-renderer';
+import { BLOCKS } from '@contentful/rich-text-types';
+import Card from './Card.astro';
+
+const { content } = Astro.props;
+
+
+
+const options = {
+  renderNode: {
+    [BLOCKS.EMBEDDED_ASSET]: (node: any) => {
+      return `<div class="aspect-video mx-auto mb-4">
+      <img src="${node.data.target.fields.file.url}" alt="${node.data.target.fields.description}" class="w-full h-full object-cover" />
+      </div>`;
+    },
+    [BLOCKS.EMBEDDED_ENTRY]: (node: any) => {
+      console.log('Node found:', node.data.target.sys.id);
+      
+      if (node.data.target.sys.id === 'hcKaG7XB6XAbVJION2hWi') {
+        console.log('Found card:', node.data.target.fields);
+        // Retourner un marqueur HTML au lieu du composant
+        return `<div data-card-id="${node.data.target.sys.id}"></div>`;
+      }
+      return '';
+    },
+    [BLOCKS.PARAGRAPH]: (node: any) => {
+      return `<p class="mb-4">${node.content.map((n: any) => n.value).join('')}</p>`;
+    },
+   
+  }
+};
+
+const htmlContent = documentToHtmlString(content, options);
+
+// Modifier le split pour utiliser notre nouveau marqueur
+const fragments = htmlContent.split(/<div data-card-id="([^"]+)"><\/div>/);
+---
+
+{fragments.map((fragment, index) => {
+  if (index % 2 === 0) {
+    // Fragment de texte normal
+    return <Fragment set:html={fragment} />;
+  } else {
+    // Fragment correspondant à une carte
+    const cardData = content.content
+      .find((node: any) => 
+        node.nodeType === BLOCKS.EMBEDDED_ENTRY && 
+        node.data.target.sys.id === fragment
+      )?.data.target;
+    
+    return cardData && <Card fields={cardData.fields} />;
+  }
+})}
+
+<style>
+  img {
+    width: 100%;
+    object-fit: cover;
+  }
+</style>
+
