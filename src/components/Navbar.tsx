@@ -1,8 +1,9 @@
+import { Menu } from "lucide-react";
 import type { ComponentPropsWithoutRef, ElementRef } from "react";
 import { forwardRef } from "react";
-import { Menu } from "lucide-react";
 import Newsletter from "./Newsletter";
 
+import { Button } from "@/components/ui/button";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -12,7 +13,6 @@ import {
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 const components: { title: string; href: string; description: string }[] = [
@@ -43,9 +43,9 @@ export default function Navbar() {
           <div>
             <a href="/">
               <img
-                src="/logo-sanpoil.png"
+                src="/logo-baratineurs.png"
                 alt="SanPoil"
-                className="max-w-[230px] mx-auto"
+                className="max-w-[200px] mx-auto"
               />
             </a>
           </div>

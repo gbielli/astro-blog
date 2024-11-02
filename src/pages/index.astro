@@ -1,5 +1,7 @@
 ---
+import HeroHeader from "@/components/HeroHeader.astro";
 import Layout from "@/layouts/Layout.astro";
+import Searchbar from "../components/SearchBar.tsx";
 import type { BlogPost } from "../lib/contentful";
 import { contentfulClient } from "../lib/contentful";
 import '../styles/global.css';
@@ -26,7 +28,7 @@ const posts = entries.items.map((item) => {
 
 <Layout title="hello world">
 <div>
-  <h1 class="bg-red-500 text-4xl">Mon Blog</h1>
+<HeroHeader articles={posts} />
   <div>
     {posts.map((post) => (
       <li>
