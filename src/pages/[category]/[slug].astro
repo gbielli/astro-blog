@@ -1,0 +1,81 @@
+---
+import RichText from '@/components/RichText.astro';
+import ArticleLayout from '@/layouts/ArticleLayout.astro';
+import type { BlogPost } from '@/lib/contentful';
+import { contentfulClient } from '@/lib/contentful';
+import { slugify } from '@/lib/utils';
+import '@/styles/global.css';
+import { Image } from 'astro:assets';
+
+interface Fields {
+  fields: {
+    title: string;
+    content: any;
+    chapter1: string; // Ajout du champ chapter1 
+    media?: {
+      fields: {
+        file: {
+          url: string;
+        };
+        description: string;
+      };
+    };
+  };
+}
+
+interface Props {
+  entry: Fields;
+}
+
+export async function getStaticPaths() {
+  const entries = await contentfulClient.getEntries<BlogPost>({
+    content_type: 'blogPost',
+    include: 2
+  });
+
+  return entries.items.map(entry => ({
+    params: {
+      category: slugify(entry.fields.chapter1),
+      slug: entry.fields.slug || entry.sys.id
+    },
+    props: { 
+      entry
+    }
+  }));
+}
+
+const { entry } = Astro.props;
+const { title, content, media, chapter1 } = entry.fields;
+
+// Ajouter le préfixe https: à l'URL
+const mediaUrl = media?.fields?.file?.url ? `https:${media.fields.file.url}` : undefined;
+---
+
+<ArticleLayout title={title}>
+<article class="mx-auto max-w-3xl block">
+  <a 
+    href={`/${slugify(chapter1.toString())}/`}
+    class="text-gray-600 hover:text-gray-900 mb-4 inline-block"
+  >
+    ← Retour à {chapter1}
+  </a>
+
+  <h1 class="text-5xl text-center">{title}</h1>
+  <p class="text-center text-gray-600">Lorem ipsum dolor sit amet consectetur adipisicing elit.</p>
+  
+  {mediaUrl && (
+    <Image 
+      src={mediaUrl}
+      alt={media?.fields?.description || title}
+      width={768} 
+      height={432} 
+      class="mx-auto aspect-video object-cover mb-8"
+      loading="eager"
+      fetchpriority="high"
+      format="webp"
+      quality={85}
+    />
+  )}
+  <RichText content={content} />
+</article>
+</ArticleLayout>

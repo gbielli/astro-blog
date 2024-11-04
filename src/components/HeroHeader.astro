@@ -1,14 +1,22 @@
 ---
+import Categories from "./Categories";
+import CategorieSummary from "./CategorieSummary.astro";
 import SearchBar from "./SearchBar";
 
-const { articles } = Astro.props;
+const { articles, title = "this a title", description = "lorem ipsum dolor sit amet consectetur adipisicing elit. Quam labore asperiores aut. consectetu adipisicing elir Lorem ipsum dolor sit. Lorem, ipsum. Lorem ipsum dolor, sit amet consectetur adipisicing elit. Velit, ipsa?" } = Astro.props;
 
 ---
 
-<section class="bg-background">
-  <div class="container mx-auto text-center max-w-2xl">
-    <h1>This is the title</h1>
-    <p class="text-balance">Lorem ipsum dolor sit amet consectetur adipisicing elit. Quam labore asperiores aut. consectetu adipisicing elir Lorem ipsum dolor sit. Lorem, ipsum. </p>
+<section class="bg-background mb-10">
+  <div class="container mx-auto text-center ">
+    <h1>{title}</h1>
+    <p class="text-balance max-w-2xl mx-auto mb-6">{description}</p>
     <SearchBar articles={articles} client:load />
+  </div>
+  <div class="pt-20 pb-10 ">
+    <Categories  />
+  </div>
+  <div>
+    <CategorieSummary title="Tous les articles" description="Lorem ipsum dolor sit amet consectetur adipisicing elit. Quam labore asperiores aut. consectetu adipisicing elir Lorem ipsum dolor sit. Lorem, ipsum. Lorem ipsum dolor, sit amet consectetur adipisicing elit. Velit, ipsa?" />
   </div>
 </section>

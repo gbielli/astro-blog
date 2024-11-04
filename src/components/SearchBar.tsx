@@ -10,6 +10,7 @@ interface BlogPost {
   slug: string;
   description?: string;
   date: string;
+  media?: string;
 }
 
 interface SearchBarProps {
@@ -80,7 +81,7 @@ export default function SearchBar({ articles }: SearchBarProps) {
       <DialogTrigger asChild>
         <Button
           variant="outline"
-          className="w-full max-w-sm mx-auto relative text-muted-foreground justify-start px-10"
+          className="w-full max-w-sm mx-auto relative text-muted-foreground justify-start px-10 py-7"
         >
           <Search className="absolute left-3 h-4 w-4" />
           Rechercher un article...
@@ -89,8 +90,8 @@ export default function SearchBar({ articles }: SearchBarProps) {
           </kbd>
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-3xl max-h-[85vh] p-0">
-        <div className="sticky top-0 bg-background border-b p-4 rounded-lg">
+      <DialogContent className="sm:max-w-3xl max-h-[85vh] ">
+        <div className="sticky top-0 bg-background border-b px-4 pb-4 pt-2 rounded-t-lg">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
             <Input
@@ -98,7 +99,7 @@ export default function SearchBar({ articles }: SearchBarProps) {
               value={query}
               onChange={handleInputChange}
               placeholder="Rechercher un article..."
-              className="pl-10 pr-10"
+              className="pl-10 pr-10 py-6"
             />
             {query && (
               <Button

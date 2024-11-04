@@ -9,6 +9,8 @@ export interface BlogPost {
     date: EntryFieldTypes.Date;
     description: EntryFieldTypes.Text;
     slug: EntryFieldTypes.Text;
+    media?: EntryFieldTypes.AssetLink;
+    chapter1: EntryFieldTypes.Text;
   };
 }
 

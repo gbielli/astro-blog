@@ -1,7 +1,7 @@
 ---
-import HeroHeader from "@/components/HeroHeader.astro";
 import Layout from "@/layouts/Layout.astro";
-import Searchbar from "../components/SearchBar.tsx";
+import { slugify } from "@/lib/utils";
+import { Image } from 'astro:assets';
 import type { BlogPost } from "../lib/contentful";
 import { contentfulClient } from "../lib/contentful";
 import '../styles/global.css';
@@ -13,35 +13,53 @@ const entries = await contentfulClient.getEntries<BlogPost>({
 
 
 const posts = entries.items.map((item) => {
-  const { title, date, description, slug } = item.fields;
+
+  const { title, date, description, slug, media, chapter1 } = item.fields;
+  const mediaUrl = media && 'fields' in media ? media.fields.file?.url : null;
   return {
     title,
-    slug,
+    slug : slugify(chapter1.toString()) + '/' + slug,
     description,
+    media: mediaUrl,
     date: new Date(date).toLocaleDateString(),
+    chapter1 : slugify(chapter1.toString())
   };
+  
 });
-
-
 
 ---
 
-<Layout title="hello world">
-<div>
-<HeroHeader articles={posts} />
+<Layout title="hello world" articles={posts}>
   <div>
-    {posts.map((post) => (
-      <li>
-        <a href={`/posts/${post.slug}/`}>
-          <h2>{post.title}</h2>
+    <div class="grid gap-10">
+      {posts.map((post) => (
+         <a href={`/${post.slug}/`} class="grid grid-cols-2 gap-4 border hover:bg-gray-50 rounded-lg transition-colors">
+          <div class="w-full">
+            {post.media && (
+              <Image 
+                src={post.media}
+                alt={post.title || "Blog post image"}
+                width={400}
+                height={200}
+                class="rounded-l-lg aspect-video object-cover w-full h-full"
+              />
+            )}
+          </div>
+          
+          <div class="flex flex-col gap-2 p-6">
+            <div>
+            <h2 class="text-2xl font-semibold m-0">{post.title}</h2>
+            <time class="text-sm text-gray-600">{post.date}</time>
+
+            </div>
+            <p class="text-md text-gray-500">{post.description}</p>
+            <p>{post.chapter1}</p>
+          </div>
         </a>
-        <time>{post.date}</time>
-        <p>{post.description}</p>
-      </li>
-    ))}
+      ))}
+    </div>
   </div>
-</div>
-</Layout>
+  </Layout>
     
 
 

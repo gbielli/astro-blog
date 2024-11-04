@@ -1,0 +1,72 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import type { BlogPost } from "@/lib/contentful";
+import { contentfulClient } from "@/lib/contentful";
+import { slugify } from "@/lib/utils";
+import { Image } from 'astro:assets';
+
+export async function getStaticPaths() {
+  const entries = await contentfulClient.getEntries<BlogPost>({
+    content_type: "blogPost",
+  });
+
+  const categories = [...new Set(entries.items
+    .map(post => post.fields.chapter1)
+    .filter(category => category != null && category !== '')
+  )];
+
+  return categories.map(category => {
+    const categoryPosts = entries.items.filter(post => post.fields.chapter1 === category);
+    
+    return {
+      params: { category: slugify(category.toString()) },
+      props: { 
+        posts: categoryPosts,
+        originalCategory: category
+      }
+    };
+  });
+}
+
+
+const { posts, originalCategory } = Astro.props;
+---
+
+<Layout title={`Articles dans la catégorie ${originalCategory}`}>
+  <div class="container mx-auto px-4 py-8">
+
+    <div class="grid grid-cols-1 gap-6">
+      {posts.map((post) => {
+        const { title, date, description, slug, media, chapter1 } = post.fields;
+        const mediaUrl = media && 'fields' in media ? media.fields.file?.url : null;
+        
+        return (
+          <a 
+            href={`/${slugify(chapter1.toString())}/${slug}/`} 
+            class="grid grid-cols-2 gap-4 p-4 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            <div class="w-full">
+              {mediaUrl && (
+                <Image 
+                  src={mediaUrl}
+                  alt={title || "Blog post image"}
+                  width={400}
+                  height={200}
+                  class="rounded-lg aspect-video object-cover w-full h-full"
+                />
+              )}
+            </div>
+            
+            <div class="flex flex-col gap-2">
+              <h2 class="text-2xl font-semibold">{title}</h2>
+              <time class="text-sm text-gray-600">
+                {new Date(date).toLocaleDateString()}
+              </time>
+              <p class="text-md text-gray-700">{description}</p>
+            </div>
+          </a>
+        );
+      })}
+    </div>
+  </div>
+</Layout>
