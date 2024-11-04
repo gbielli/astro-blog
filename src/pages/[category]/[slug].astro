@@ -11,7 +11,8 @@ interface Fields {
   fields: {
     title: string;
     content: any;
-    chapter1: string; // Ajout du champ chapter1 
+    chapter1: string;
+    slug?: string;
     media?: {
       fields: {
         file: {
@@ -21,6 +22,9 @@ interface Fields {
       };
     };
   };
+  sys: {
+    id: string;
+  };
 }
 
 interface Props {
@@ -28,54 +32,130 @@ interface Props {
 }
 
 export async function getStaticPaths() {
-  const entries = await contentfulClient.getEntries<BlogPost>({
-    content_type: 'blogPost',
-    include: 2
-  });
+  try {
+    const entries = await contentfulClient.getEntries<BlogPost>({
+      content_type: 'blogPost',
+      include: 2
+    });
 
-  return entries.items.map(entry => ({
-    params: {
-      category: slugify(entry.fields.chapter1),
-      slug: entry.fields.slug || entry.sys.id
-    },
-    props: { 
-      entry
+    // S'assurer que nous avons des entrées valides
+    if (!entries?.items?.length) {
+      console.warn('Aucune entrée trouvée dans Contentful');
+      return [];
     }
-  }));
+
+    const paths = entries.items
+      .filter(entry => {
+        // Vérification stricte des champs requis
+        if (!entry?.fields?.chapter1 || !entry?.sys?.id) {
+          console.warn('Entrée invalide détectée:', {
+            id: entry?.sys?.id,
+            chapter1: entry?.fields?.chapter1
+          });
+          return false;
+        }
+        return true;
+      })
+      .map(entry => {
+        // Création sécurisée des slugs
+        const categorySlug = slugify(entry.fields.chapter1) || 'uncategorized';
+        const pageSlug = slugify(entry.fields.slug || '') || entry.sys.id;
+
+        // Vérification des slugs générés
+        if (!categorySlug || !pageSlug) {
+          console.warn('Slugs invalides générés pour:', {
+            id: entry.sys.id,
+            categorySlug,
+            pageSlug
+          });
+          return null;
+        }
+
+        return {
+          params: {
+            category: categorySlug,
+            slug: pageSlug
+          },
+          props: { 
+            entry: {
+              fields: {
+                title: entry.fields.title || '',
+                content: entry.fields.content,
+                chapter1: entry.fields.chapter1,
+                media: entry.fields.media,
+                slug: entry.fields.slug
+              },
+              sys: {
+                id: entry.sys.id
+              }
+            }
+          }
+        };
+      })
+      .filter(Boolean); // Filtrer les entrées null
+
+    // Vérification finale des chemins générés
+    if (!paths.length) {
+      console.warn('Aucun chemin valide généré');
+      return [];
+    }
+
+    return paths;
+
+  } catch (error) {
+    console.error('Erreur lors de la génération des chemins:', error);
+    return [];
+  }
 }
 
+// Destructuring sécurisé des props
 const { entry } = Astro.props;
-const { title, content, media, chapter1 } = entry.fields;
+const { 
+  title = '',
+  content = null,
+  media = null,
+  chapter1 = ''
+} = entry?.fields || {};
 
-// Ajouter le préfixe https: à l'URL
-const mediaUrl = media?.fields?.file?.url ? `https:${media.fields.file.url}` : undefined;
+// Gestion sécurisée de l'URL des médias
+const mediaUrl = media?.fields?.file?.url 
+  ? `https:${media.fields.file.url}` 
+  : undefined;
+
+// Création sécurisée du slug pour le lien de retour
+const categorySlug = slugify(chapter1) || 'uncategorized';
 ---
 
-<ArticleLayout title={title}>
-<article class="mx-auto max-w-3xl block">
-  <a 
-    href={`/${slugify(chapter1.toString())}/`}
-    class="text-gray-600 hover:text-gray-900 mb-4 inline-block"
-  >
-    ← Retour à {chapter1}
-  </a>
+<ArticleLayout title={title || 'Article'}>
+  <article class="mx-auto max-w-3xl block">
+    {chapter1 && (
+      <a 
+        href={`/${categorySlug}/`}
+        class="text-gray-600 hover:text-gray-900 mb-4 inline-block"
+      >
+        ← Retour à {chapter1}
+      </a>
+    )}
 
-  <h1 class="text-5xl text-center">{title}</h1>
-  <p class="text-center text-gray-600">Lorem ipsum dolor sit amet consectetur adipisicing elit.</p>
-  
-  {mediaUrl && (
-    <Image 
-      src={mediaUrl}
-      alt={media?.fields?.description || title}
-      width={768} 
-      height={432} 
-      class="mx-auto aspect-video object-cover mb-8"
-      loading="eager"
-      fetchpriority="high"
-      format="webp"
-      quality={85}
-    />
-  )}
-  <RichText content={content} />
-</article>
+    <h1 class="text-5xl text-center">{title}</h1>
+    <p class="text-center text-gray-600">
+      Lorem ipsum dolor sit amet consectetur adipisicing elit.
+    </p>
+    
+    {mediaUrl && (
+      <Image 
+        src={mediaUrl}
+        alt={media?.fields?.description || title || 'Image'}
+        width={768} 
+        height={432} 
+        class="mx-auto aspect-video object-cover mb-8"
+        loading="eager"
+        fetchpriority="high"
+        format="webp"
+        quality={85}
+      />
+    )}
+    
+    {content && <RichText content={content} />}
+  </article>
 </ArticleLayout>

@@ -18,11 +18,11 @@ const posts = entries.items.map((item) => {
   const mediaUrl = media && 'fields' in media ? media.fields.file?.url : null;
   return {
     title,
-    slug : slugify(chapter1.toString()) + '/' + slug,
+    slug : slugify(chapter1) + '/' + slug,
     description,
     media: mediaUrl,
     date: new Date(date).toLocaleDateString(),
-    chapter1 : slugify(chapter1.toString())
+    chapter1 : slugify(chapter1)
   };
   
 });
