@@ -38,38 +38,21 @@ export async function getStaticPaths() {
       include: 2
     });
 
-    // S'assurer que nous avons des entrées valides
-    if (!entries?.items?.length) {
-      console.warn('Aucune entrée trouvée dans Contentful');
-      return [];
-    }
-
     const paths = entries.items
       .filter(entry => {
-        // Vérification stricte des champs requis
-        if (!entry?.fields?.chapter1 || !entry?.sys?.id) {
-          console.warn('Entrée invalide détectée:', {
-            id: entry?.sys?.id,
-            chapter1: entry?.fields?.chapter1
-          });
+        // Vérifier que chapter1 existe et n'est pas vide
+        if (!entry?.fields?.chapter1) {
+          console.warn(`Entrée ${entry?.sys?.id} ignorée: chapter1 manquant`);
           return false;
         }
         return true;
       })
       .map(entry => {
-        // Création sécurisée des slugs
+        // Générer des slugs avec des valeurs par défaut
         const categorySlug = slugify(entry.fields.chapter1) || 'uncategorized';
-        const pageSlug = slugify(entry.fields.slug || '') || entry.sys.id;
-
-        // Vérification des slugs générés
-        if (!categorySlug || !pageSlug) {
-          console.warn('Slugs invalides générés pour:', {
-            id: entry.sys.id,
-            categorySlug,
-            pageSlug
-          });
-          return null;
-        }
+        const pageSlug = entry.fields.slug 
+          ? slugify(entry.fields.slug)
+          : entry.sys.id;
 
         return {
           params: {
@@ -91,51 +74,40 @@ export async function getStaticPaths() {
             }
           }
         };
-      })
-      .filter(Boolean); // Filtrer les entrées null
+      });
 
-    // Vérification finale des chemins générés
-    if (!paths.length) {
+    // Vérification des chemins générés
+    if (paths.length === 0) {
       console.warn('Aucun chemin valide généré');
-      return [];
     }
 
     return paths;
-
   } catch (error) {
     console.error('Erreur lors de la génération des chemins:', error);
-    return [];
+    throw error;
   }
 }
 
-// Destructuring sécurisé des props
 const { entry } = Astro.props;
-const { 
-  title = '',
-  content = null,
-  media = null,
-  chapter1 = ''
-} = entry?.fields || {};
+const { title = '', content = null, media = null, chapter1 = '' } = entry.fields;
 
-// Gestion sécurisée de l'URL des médias
+// Ajouter le préfixe https: à l'URL de manière sécurisée
 const mediaUrl = media?.fields?.file?.url 
   ? `https:${media.fields.file.url}` 
   : undefined;
 
-// Création sécurisée du slug pour le lien de retour
+// Générer le slug de catégorie de manière sécurisée
 const categorySlug = slugify(chapter1) || 'uncategorized';
 ---
 
-<ArticleLayout title={title || 'Article'}>
+<ArticleLayout title={title}>
   <article class="mx-auto max-w-3xl block">
-    {chapter1 && (
-      <a 
-        href={`/${categorySlug}/`}
-        class="text-gray-600 hover:text-gray-900 mb-4 inline-block"
-      >
-        ← Retour à {chapter1}
-      </a>
-    )}
+    <a 
+      href={`/${categorySlug}/`}
+      class="text-gray-600 hover:text-gray-900 mb-4 inline-block"
+    >
+      ← Retour à {chapter1}
+    </a>
 
     <h1 class="text-5xl text-center">{title}</h1>
     <p class="text-center text-gray-600">
@@ -145,7 +117,7 @@ const categorySlug = slugify(chapter1) || 'uncategorized';
     {mediaUrl && (
       <Image 
         src={mediaUrl}
-        alt={media?.fields?.description || title || 'Image'}
+        alt={media?.fields?.description || title}
         width={768} 
         height={432} 
         class="mx-auto aspect-video object-cover mb-8"
