@@ -1,9 +1,9 @@
 ---
+import ArticleCard from "@/components/ArticleCard.astro";
 import Layout from "@/layouts/Layout.astro";
 import type { BlogPost } from "@/lib/contentful";
 import { contentfulClient } from "@/lib/contentful";
 import { slugify } from "@/lib/utils";
-import { Image } from 'astro:assets';
 
 export async function getStaticPaths() {
   const entries = await contentfulClient.getEntries<BlogPost>({
@@ -18,53 +18,48 @@ export async function getStaticPaths() {
   return categories.map(category => {
     const categoryPosts = entries.items.filter(post => post.fields.chapter1 === category);
     
+    // Formater les données des posts, y compris la date
+    const formattedPosts = categoryPosts.map(post => ({
+      ...post,
+      fields: {
+        ...post.fields,
+        date: new Date(post.fields.date).toLocaleDateString('fr-FR', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        })
+      }
+    }));
+    
     return {
       params: { category: slugify(category.toString()) },
       props: { 
-        posts: categoryPosts,
+        posts: formattedPosts,
         originalCategory: category
       }
     };
   });
 }
 
-
 const { posts, originalCategory } = Astro.props;
 ---
 
 <Layout title={`Articles dans la catégorie ${originalCategory}`}>
   <div class="container mx-auto px-4 py-8">
-
     <div class="grid grid-cols-1 gap-6">
       {posts.map((post) => {
         const { title, date, description, slug, media, chapter1 } = post.fields;
         const mediaUrl = media && 'fields' in media ? media.fields.file?.url : null;
         
         return (
-          <a 
-            href={`/${slugify(chapter1.toString())}/${slug}/`} 
-            class="grid grid-cols-2 gap-4 p-4 rounded-lg hover:bg-gray-50 transition-colors"
-          >
-            <div class="w-full">
-              {mediaUrl && (
-                <Image 
-                  src={mediaUrl}
-                  alt={title || "Blog post image"}
-                  width={400}
-                  height={200}
-                  class="rounded-lg aspect-video object-cover w-full h-full"
-                />
-              )}
-            </div>
-            
-            <div class="flex flex-col gap-2">
-              <h2 class="text-2xl font-semibold">{title}</h2>
-              <time class="text-sm text-gray-600">
-                {new Date(date).toLocaleDateString()}
-              </time>
-              <p class="text-md text-gray-700">{description}</p>
-            </div>
-          </a>
+          <ArticleCard
+            title={title}
+            date={date}
+            description={description}
+            slug={slug}
+            chapter1={chapter1}
+            mediaUrl={mediaUrl}
+          />
         );
       })}
     </div>

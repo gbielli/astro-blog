@@ -12,23 +12,35 @@ const { articles } = Astro.props;
 
 ---
 
-<html lang="fr" class="scroll-smooth">
+<html lang="fr" class="">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{title}</title>
+    <ViewTransitions />
   </head>
   <body class="min-h-screen w-full">
     <Navbar client:load />
     <main class="max-w-5xl mx-auto px-4 py-8 pt-20">
       <HeroHeader articles={articles} />
-      <article>
         <slot />
-      </article>
     </main>
     <Footer />
-    <ViewTransitions />
+
   </body>
 </html>
 
+<script>
+  let scrollPosition = 0;
+
+  document.addEventListener('astro:before-preparation', () => {
+    // Capture la position avant la navigation
+    scrollPosition = window.scrollY;
+  });
+
+  document.addEventListener('astro:after-swap', () => {
+    // Restaure immédiatement la position après le swap du contenu
+    window.scrollTo(0, scrollPosition);
+  });
+</script>
 

@@ -1,7 +1,7 @@
 ---
+import ArticleCard from "@/components/ArticleCard.astro";
 import Layout from "@/layouts/Layout.astro";
 import { slugify } from "@/lib/utils";
-import { Image } from 'astro:assets';
 import type { BlogPost } from "../lib/contentful";
 import { contentfulClient } from "../lib/contentful";
 import '../styles/global.css';
@@ -21,7 +21,11 @@ const posts = entries.items.map((item) => {
     slug : slugify(chapter1) + '/' + slug,
     description,
     media: mediaUrl,
-    date: new Date(date).toLocaleDateString(),
+    date: new Date(date).toLocaleDateString('fr-FR', {
+  year: 'numeric',
+  month: 'long', 
+  day: 'numeric'
+}),
     chapter1 : slugify(chapter1)
   };
   
@@ -30,32 +34,17 @@ const posts = entries.items.map((item) => {
 ---
 
 <Layout title="hello world" articles={posts}>
-  <div>
+  <div class="px-4 py-8 mx-auto max-w-5xl">
     <div class="grid gap-10">
       {posts.map((post) => (
-         <a href={`/${post.slug}/`} class="grid grid-cols-2 gap-4 border hover:bg-gray-50 rounded-lg transition-colors">
-          <div class="w-full">
-            {post.media && (
-              <Image 
-                src={post.media}
-                alt={post.title || "Blog post image"}
-                width={400}
-                height={200}
-                class="rounded-l-lg aspect-video object-cover w-full h-full"
-              />
-            )}
-          </div>
-          
-          <div class="flex flex-col gap-2 p-6">
-            <div>
-            <h2 class="text-2xl font-semibold m-0">{post.title}</h2>
-            <time class="text-sm text-gray-600">{post.date}</time>
-
-            </div>
-            <p class="text-md text-gray-500">{post.description}</p>
-            <p>{post.chapter1}</p>
-          </div>
-        </a>
+         <ArticleCard
+            title={post.title}
+            date={post.date}
+            description={post.description}
+            slug={post.slug}
+            chapter1={post.chapter1}
+            mediaUrl={post.media}
+          />
       ))}
     </div>
   </div>

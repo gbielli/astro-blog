@@ -1,0 +1,48 @@
+---
+import { Image } from 'astro:assets';
+import { Badge } from './ui/badge';
+
+interface Props {
+  title: string;
+  date: string;
+  description: string;
+  slug: string;
+  chapter1: string;
+  mediaUrl?: string | null;
+}
+
+const { title, date, description, slug, mediaUrl, chapter1 } = Astro.props;
+---
+<article>
+  <a href={`/${slug}/`} class="grid grid-cols-2 gap-4 border hover:bg-gray-50 rounded-lg transition-colors">
+    <div class="w-full">
+      <div class="relative">
+        {mediaUrl && (
+            <Image 
+              src={mediaUrl}
+              alt={title || "Blog post image"}
+              width={400}
+              height={200}
+              class="rounded-l-lg aspect-video object-cover w-full h-full"
+            />
+        )}
+      </div>
+    </div>
+ 
+    
+    <div class="flex flex-col gap-2 p-4">
+      <div>
+      <h2 class="text-2xl font-semibold m-0">{title}</h2>
+      <time class="text-sm text-gray-600">{date}</time>
+  
+      </div>
+      <p class="text-md text-gray-500">{description}</p>
+      <div>
+        <Badge className="inline-block font-semibold rounded-full px-2 py-1">
+          {chapter1}
+        </Badge>
+      </div>
+      
+    </div>
+  </a>
+</article>
