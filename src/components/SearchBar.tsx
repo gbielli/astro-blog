@@ -1,7 +1,11 @@
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+} from "@/components/ui/search-dialog";
 import { Search, X } from "lucide-react";
 import * as React from "react";
 
@@ -130,7 +134,7 @@ export default function SearchBar({ articles }: SearchBarProps) {
                   className="group rounded-lg border p-4 hover:bg-muted transition-colors"
                 >
                   <a
-                    href={`/posts/${post.slug}/`}
+                    href={`/${post.slug}/`}
                     onClick={handleLinkClick}
                     className="block space-y-2"
                   >

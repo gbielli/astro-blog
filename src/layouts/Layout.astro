@@ -1,6 +1,4 @@
 ---
-
-const { title } = Astro.props;
 import Footer from '@/components/Footer.astro';
 import HeroHeader from '@/components/HeroHeader.astro';
 import Navbar from '@/components/Navbar';
@@ -8,7 +6,7 @@ import '@/styles/global.css';
 import ViewTransitions from "astro/components/ViewTransitions.astro";
 
 
-const { articles } = Astro.props;
+const { title, articles } = Astro.props;
 
 ---
 
@@ -30,17 +28,5 @@ const { articles } = Astro.props;
   </body>
 </html>
 
-<script>
-  let scrollPosition = 0;
 
-  document.addEventListener('astro:before-preparation', () => {
-    // Capture la position avant la navigation
-    scrollPosition = window.scrollY;
-  });
-
-  document.addEventListener('astro:after-swap', () => {
-    // Restaure immédiatement la position après le swap du contenu
-    window.scrollTo(0, scrollPosition);
-  });
-</script>
 

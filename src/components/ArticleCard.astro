@@ -36,9 +36,9 @@ const { title, date, description, slug, mediaUrl, chapter1 } = Astro.props;
       <time class="text-sm text-gray-600">{date}</time>
   
       </div>
-      <p class="text-md text-gray-500">{description}</p>
+      <p class="text-md text-gray-500 mb-2">{description}</p>
       <div>
-        <Badge className="inline-block font-semibold rounded-full px-2 py-1">
+        <Badge className="inline-block font-normal text-sm rounded-full px-2 py-1">
           {chapter1}
         </Badge>
       </div>

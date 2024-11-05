@@ -16,25 +16,30 @@ export async function getStaticPaths() {
   )];
 
   return categories.map(category => {
-    const categoryPosts = entries.items.filter(post => post.fields.chapter1 === category);
-    
-    // Formater les données des posts, y compris la date
-    const formattedPosts = categoryPosts.map(post => ({
-      ...post,
-      fields: {
-        ...post.fields,
-        date: new Date(post.fields.date).toLocaleDateString('fr-FR', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric'
-        })
-      }
-    }));
-    
+    const categoryPosts = entries.items
+      .filter(post => post.fields.chapter1 === category)
+      .map(post => {
+        const { title, date, description, slug, media, chapter1 } = post.fields;
+        const mediaUrl = media && 'fields' in media ? media.fields.file?.url : null;
+        
+        return {
+          title,
+          slug: slugify(chapter1) + '/' + slug,
+          description,
+          media: mediaUrl,
+          date: new Date(date).toLocaleDateString('fr-FR', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+          }),
+          chapter1: slugify(chapter1)
+        };
+      });
+
     return {
       params: { category: slugify(category.toString()) },
       props: { 
-        posts: formattedPosts,
+        posts: categoryPosts,
         originalCategory: category
       }
     };
@@ -44,24 +49,19 @@ export async function getStaticPaths() {
 const { posts, originalCategory } = Astro.props;
 ---
 
-<Layout title={`Articles dans la catégorie ${originalCategory}`}>
+<Layout title={`Articles dans la catégorie ${originalCategory}`} articles={posts}>
   <div class="container mx-auto px-4 py-8">
     <div class="grid grid-cols-1 gap-6">
-      {posts.map((post) => {
-        const { title, date, description, slug, media, chapter1 } = post.fields;
-        const mediaUrl = media && 'fields' in media ? media.fields.file?.url : null;
-        
-        return (
-          <ArticleCard
-            title={title}
-            date={date}
-            description={description}
-            slug={slug}
-            chapter1={chapter1}
-            mediaUrl={mediaUrl}
-          />
-        );
-      })}
+      {posts.map((post) => (
+        <ArticleCard
+          title={post.title}
+          date={post.date}
+          description={post.description}
+          slug={post.slug}
+          chapter1={post.chapter1}
+          mediaUrl={post.media}
+        />
+      ))}
     </div>
   </div>
 </Layout>
