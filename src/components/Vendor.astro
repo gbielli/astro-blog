@@ -1,0 +1,28 @@
+---
+
+import { Image } from 'astro:assets';
+import type { VendorReturn } from '../lib/contentful';
+import { getVendor } from '../lib/contentful';
+
+
+
+const { vendor } = Astro.props;
+
+const vendorEntry = await getVendor(vendor.sys.id) as VendorReturn;
+---
+
+{vendorEntry && (
+  <div class="flex items-center gap-2">
+    {vendorEntry.fields.logo && (
+      <Image
+        src={vendorEntry.fields.logo.fields.file.url as string}
+        alt={vendorEntry.fields.name}
+        width={200}
+        height={200}
+        class="w-8 h-8 object-contain"
+      />
+    )}
+    <span class="font-medium">{vendorEntry.fields.name}</span>
+  
+  </div>
+)}

@@ -40,7 +40,7 @@ const extractImageAttributes = (marker: string) => {
 };
 ---
 
-{splitContent.map((fragment, index) => {
+{splitContent.map((fragment) => {
   if (!fragment.startsWith('<div data-')) {
     // Regular content
     return <Fragment set:html={fragment} />;

@@ -1,5 +1,59 @@
-import type { EntryFieldTypes } from "contentful";
+import type { ContentTypeSys, EntryFieldTypes } from "contentful";
 import { createClient } from "contentful";
+
+interface ContentfulAsset {
+  contentTypeId: "asset";
+  fields: {
+    title: string;
+    file: {
+      url: string;
+    };
+  };
+}
+
+export interface Vendor {
+  contentTypeId: "vendor";
+  sys: {
+    id: string;
+  };
+  fields: {
+    name: string;
+    logo: {
+      sys: { id: string };
+      fields: {
+        file: {
+          url: string;
+        };
+      };
+    };
+  };
+}
+
+// Interface pour la proposition vendeur
+export interface VendorProposal {
+  contentTypeId: "vendorProposal";
+  fields: {
+    vendor: EntryFieldTypes.EntryLink<Vendor>;
+    price: EntryFieldTypes.Number;
+    url: string;
+  };
+}
+
+// Interface principale pour les Cards
+export interface Cards {
+  contentTypeId: "cards";
+  fields: {
+    cardTitle: EntryFieldTypes.Symbol;
+    productAdvantages: EntryFieldTypes.Symbol[];
+    like?: EntryFieldTypes.Symbol[];
+    dislike?: EntryFieldTypes.Symbol[];
+    stars?: EntryFieldTypes.Number;
+    image?: { fields: ContentfulAsset["fields"] };
+    vendorProposal?: {
+      fields: VendorProposal["fields"];
+    }[];
+  };
+}
 
 export interface BlogPost {
   contentTypeId: "blogPost";
@@ -14,12 +68,30 @@ export interface BlogPost {
   };
 }
 
-export interface Cards {
-  contentTypeId: "cards";
+export interface VendorReturn {
   fields: {
-    card_title: EntryFieldTypes.Text;
-    productAdvantages: EntryFieldTypes.Text[];
+    name: string;
+    logo: { fields: ContentfulAsset["fields"] };
   };
+  sys: {
+    id: ContentTypeSys["id"];
+  };
+}
+
+export async function getVendor(id: string): Promise<VendorReturn | null> {
+  try {
+    const vendor = await contentfulClient.getEntry<Vendor>(id);
+    return {
+      fields: {
+        name: vendor.fields.name,
+        logo: vendor.fields.logo,
+      },
+      sys: vendor.sys,
+    };
+  } catch (error) {
+    console.error("Error fetching vendor:", error);
+    return null;
+  }
 }
 
 export const contentfulClient = createClient({
