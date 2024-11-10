@@ -1,8 +1,8 @@
 ---
 import { Image } from 'astro:assets';
 import type { Cards } from '../lib/contentful';
-import Vendor from './Vendor.astro';
-import { Button } from './ui/button';
+
+import VendorProposal from './VendorProposal.astro';
 
 interface Props {
   fields: Cards['fields'];
@@ -17,7 +17,7 @@ const {
   dislike = [], // Valeur par défaut pour éviter les undefined
   stars, 
   image, 
-  vendorProposal = [] 
+  vendorProposal = []
 } = fields;
 
 function getActiveStarColor(stars: number) {
@@ -143,28 +143,7 @@ function getActiveStarColor(stars: number) {
 
     {/* Propositions vendeur */}
     {vendorProposal && vendorProposal.length > 0 && (
-      <div class="mt-8">
-        <h4 class="font-medium text-xl mb-4">Propositions vendeur</h4>
-        {vendorProposal.map((proposal) => {
-          if (!proposal?.fields) return null;
-          
-          return (
-            <a 
-              href={proposal.fields.url} 
-              class="flex items-center justify-between p-4 border-b last:border-b-0 bg-white hover:bg-white/80 transition-colors"
-            >
-              {proposal.fields.vendor && (
-                <Vendor vendor={proposal.fields.vendor} />
-              )}
-         
-              <div class="flex items-center gap-4 ">
-                <p class="m-auto text-xl font-semibold">{proposal.fields.price}€</p>
-                <Button >Voir l'offre</Button>
-              </div>
-            </a>
-          );
-        })}
-      </div>
+      <VendorProposal proposal={vendorProposal} />
     )}
   </div>
 </div>

@@ -1,4 +1,5 @@
 ---
+import Author from '@/components/Author.astro';
 import RichText from '@/components/RichText.astro';
 import ArticleLayout from '@/layouts/ArticleLayout.astro';
 import type { BlogPost } from '@/lib/contentful';
@@ -13,10 +14,19 @@ interface Fields {
     content: any;
     chapter1: string;
     slug?: string;
+    description?: string;
+    publishDate?: string;
+    author?: string;
     media?: {
       fields: {
         file: {
           url: string;
+          details?: {
+            image?: {
+              width: number;
+              height: number;
+            };
+          };
         };
         description: string;
       };
@@ -24,6 +34,8 @@ interface Fields {
   };
   sys: {
     id: string;
+    createdAt: string;
+    updatedAt: string;
   };
 }
 
@@ -35,12 +47,12 @@ export async function getStaticPaths() {
   try {
     const entries = await contentfulClient.getEntries<BlogPost>({
       content_type: 'blogPost',
-      include: 2
+      include: 2,
     });
+    
 
     const paths = entries.items
       .filter(entry => {
-        // Vérifier que chapter1 existe et n'est pas vide
         if (!entry?.fields?.chapter1) {
           console.warn(`Entrée ${entry?.sys?.id} ignorée: chapter1 manquant`);
           return false;
@@ -48,11 +60,9 @@ export async function getStaticPaths() {
         return true;
       })
       .map(entry => {
-        // Générer des slugs avec des valeurs par défaut
+        
         const categorySlug = slugify(entry.fields.chapter1) || 'uncategorized';
-        const pageSlug = entry.fields.slug 
-          ? slugify(entry.fields.slug)
-          : entry.sys.id;
+        const pageSlug = slugify(entry.fields.slug) || ''
 
         return {
           params: {
@@ -65,18 +75,22 @@ export async function getStaticPaths() {
                 title: entry.fields.title || '',
                 content: entry.fields.content,
                 chapter1: entry.fields.chapter1,
+                description: entry.fields.description,
+                publishDate: entry.sys.createdAt,
+                author: entry.fields.author,
                 media: entry.fields.media,
                 slug: entry.fields.slug
               },
               sys: {
-                id: entry.sys.id
+                id: entry.sys.id,
+                createdAt: entry.sys.createdAt,
+                updatedAt: entry.sys.updatedAt
               }
             }
           }
         };
       });
 
-    // Vérification des chemins générés
     if (paths.length === 0) {
       console.warn('Aucun chemin valide généré');
     }
@@ -89,45 +103,119 @@ export async function getStaticPaths() {
 }
 
 const { entry } = Astro.props;
-const { title = '', content = null, media = null, chapter1 = '' } = entry.fields;
+const { 
+  title = '', 
+  content = null, 
+  media = null, 
+  chapter1 = '',
+  description = '',
+  publishDate,
+  author = 'Guillaume'
+} = entry.fields;
 
-// Ajouter le préfixe https: à l'URL de manière sécurisée
+const { createdAt, updatedAt } = entry.sys;
+
 const mediaUrl = media?.fields?.file?.url 
   ? `https:${media.fields.file.url}` 
   : undefined;
 
-// Générer le slug de catégorie de manière sécurisée
 const categorySlug = slugify(chapter1) || 'uncategorized';
+
+// Dimensions optimales pour l'image
+const imageWidth = media?.fields?.file?.details?.image?.width || 1200;
+const imageHeight = media?.fields?.file?.details?.image?.height || 675;
+
+// Construction des métadonnées structurées
+const structuredData = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": title,
+  "description": description,
+  "image": mediaUrl,
+  "author": {
+    "@type": "Person",
+    "name": author
+  },
+  "datePublished": createdAt,
+  "dateModified": updatedAt,
+  "articleSection": chapter1,
+  "publisher": {
+    "@type": "Organization",
+    "name": "Les badineurs",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://votre-site.com/logo.png"
+    }
+  }
+};
 ---
 
-<ArticleLayout title={title}>
-  <article class="mx-auto max-w-3xl block">
-    <a 
-      href={`/${categorySlug}/`}
-      class="text-gray-600 hover:text-gray-900 mb-4 inline-block"
-    >
-      ← Retour à {chapter1}
-    </a>
+<ArticleLayout 
+  title={title}
+  description={description}
+  image={mediaUrl}
+  articleDate={new Date(publishDate || createdAt)}
+  author={author}
+>
+  <article class="mx-auto max-w-3xl block" itemscope itemtype="https://schema.org/Article">
+    <nav class="mb-8" aria-label="Breadcrumb">
+      <ol class="flex items-center space-x-2 text-sm">
+        <li><a href="/" class="hover:text-gray-900">Accueil</a></li>
+        <li>/</li>
+        <li>
+          <a 
+            href={`/${categorySlug}/`}
+            class="hover:text-gray-900"
+          >
+            {chapter1}
+          </a>
+        </li>
+      </ol>
+    </nav>
 
-    <h1 class="text-5xl text-center">{title}</h1>
-    <p class="text-center text-gray-600">
-      Lorem ipsum dolor sit amet consectetur adipisicing elit.
-    </p>
+    <header class="mb-8">
+      <h1 class="text-5xl text-center mb-4" itemprop="headline">{title}</h1>
+      {description && (
+        <p class="text-center text-gray-600 text-lg mb-4" itemprop="description">
+          {description}
+        </p>
+      )}
+      <div class="text-center text-sm text-gray-500">
+        <!-- <time datetime={publishDate || createdAt} itemprop="datePublished">
+          {formatDate(publishDate || createdAt)}
+        </time> -->
+        {author && (
+          <Author author={author} />
+        )}
+      </div>
+    </header>
     
     {mediaUrl && (
-      <Image 
-        src={mediaUrl}
-        alt={media?.fields?.description || title}
-        width={768} 
-        height={432} 
-        class="mx-auto aspect-video object-cover mb-8"
-        loading="eager"
-        fetchpriority="high"
-        format="webp"
-        quality={85}
-      />
+      <figure class="mb-8">
+        <Image 
+          src={mediaUrl}
+          alt={media?.fields?.description || title}
+          width={imageWidth} 
+          height={imageHeight} 
+          class="mx-auto aspect-video object-cover"
+          loading="eager"
+          fetchpriority="high"
+          format="webp"
+          quality={85}
+          itemprop="image"
+        />
+        {media?.fields?.description && (
+          <figcaption class="text-center text-sm text-gray-500 mt-2">
+            {media.fields.description}
+          </figcaption>
+        )}
+      </figure>
     )}
     
-    {content && <RichText content={content} />}
+    <div itemprop="articleBody">
+      {content && <RichText content={content} />}
+    </div>
   </article>
+
+  <script type="application/ld+json" set:html={JSON.stringify(structuredData)} />
 </ArticleLayout>

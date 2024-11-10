@@ -51,6 +51,7 @@ export interface Cards {
     image?: { fields: ContentfulAsset["fields"] };
     vendorProposal?: {
       fields: VendorProposal["fields"];
+      sys: { id: string };
     }[];
   };
 }
@@ -65,6 +66,7 @@ export interface BlogPost {
     slug: EntryFieldTypes.Text;
     media?: EntryFieldTypes.AssetLink;
     chapter1: EntryFieldTypes.Text;
+    author: EntryFieldTypes.Text;
   };
 }
 

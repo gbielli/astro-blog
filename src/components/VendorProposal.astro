@@ -1,0 +1,41 @@
+---
+
+import Vendor from './Vendor.astro';
+import { Button } from './ui/button';
+import type { VendorProposal } from '../lib/contentful';
+
+const { proposal } = Astro.props;
+
+interface Props {
+  proposal: {
+    fields: VendorProposal["fields"];
+    sys: { id: string };
+  }[];
+}
+
+
+---
+
+
+  <div class="mt-8">
+    <h4 class="font-semibold text-xl mb-4">Propositions vendeur</h4>
+    {proposal.map((proposal) => {
+      if (!proposal?.fields) return null;
+      
+      return (
+        <a 
+          href={proposal.fields.url} 
+          class="flex items-center justify-between p-4 border-b last:border-b-0 bg-white hover:bg-white/80 transition-colors"
+        >
+          {proposal.fields.vendor && (
+            <Vendor vendor={proposal.fields.vendor} />
+          )}
+     
+          <div class="flex items-center gap-4 ">
+            <p class="m-auto text-xl font-semibold">{proposal.fields.price}€</p>
+            <Button >Voir l'offre</Button>
+          </div>
+        </a>
+      );
+    })}
+  </div>

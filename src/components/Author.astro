@@ -1,0 +1,19 @@
+---
+import { Image } from 'astro:assets';
+
+const { author } = Astro.props;
+console.log(author);
+---
+
+
+<div>
+  <Image
+    src={author.fields.image.fields.file.url as string}
+    alt={author.fields.fullname}
+    width={200}
+    height={200}
+    class="w-8 h-8 object-contain"
+  />
+  <span class="font-medium">{author.fields.fullname}</span>
+  <p>{author.fields.description}</p>
+</div>
