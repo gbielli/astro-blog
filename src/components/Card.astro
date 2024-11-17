@@ -12,9 +12,9 @@ const { fields } = Astro.props;
 
 
 const { 
-  cardTitle,  // Valeur par défaut pour éviter les undefined
-  like = [], // Valeur par défaut pour éviter les undefined
-  dislike = [], // Valeur par défaut pour éviter les undefined
+  cardTitle,  
+  like = [], 
+  dislike = [], 
   stars, 
   image, 
   vendorProposal = []
@@ -84,7 +84,7 @@ function getActiveStarColor(stars: number) {
     </div>
 
     <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
-      {/* Like */}
+    
       {like && like.length > 0 && (
         <div class="mb-4">
           <h4 class="text-xl mb-3 font-semibold">Points positifs</h4>
@@ -112,7 +112,6 @@ function getActiveStarColor(stars: number) {
         </div>
       )}
 
-      {/* Dislike */}
       {dislike && dislike.length > 0 && (
         <div class="mb-4">
           <h4 class="text-xl mb-3 font-semibold">Points négatifs</h4>
@@ -141,7 +140,6 @@ function getActiveStarColor(stars: number) {
       )}
     </div>
 
-    {/* Propositions vendeur */}
     {vendorProposal && vendorProposal.length > 0 && (
       <VendorProposal proposal={vendorProposal} />
     )}
