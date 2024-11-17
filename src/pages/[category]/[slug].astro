@@ -174,9 +174,15 @@ const structuredData = {
     </nav>
 
     <header class="mb-8">
+     
+      {author && (
+         <div class="mb-8">
+           <Author author={author} />
+      </div>
+      )}
       <h1 class="text-5xl text-center mb-4" itemprop="headline">{title}</h1>
       {description && (
-        <p class="text-center text-gray-600 text-lg mb-4" itemprop="description">
+        <p class="text-center text-gray-600 text-lg mb-8" itemprop="description">
           {description}
         </p>
       )}
@@ -184,9 +190,7 @@ const structuredData = {
         <!-- <time datetime={publishDate || createdAt} itemprop="datePublished">
           {formatDate(publishDate || createdAt)}
         </time> -->
-        {author && (
-          <Author author={author} />
-        )}
+     
       </div>
     </header>
     

@@ -1,15 +1,29 @@
 ---
 import { documentToHtmlString } from '@contentful/rich-text-html-renderer';
 import { BLOCKS } from '@contentful/rich-text-types';
+import { CaretRightIcon } from '@radix-ui/react-icons';
 import { Image } from 'astro:assets';
 import Card from './Card.astro';
 
 const { content } = Astro.props;
 
+// Extraire les h2 pour le sommaire
+const getHeadings = (content: any) => {
+  const headings: string[] = [];
+  content.content.forEach((node: any) => {
+    if (node.nodeType === BLOCKS.HEADING_2) {
+      const headingText = node.content[0].value;
+      headings.push(headingText);
+    }
+  });
+  return headings;
+};
+
+const headings = getHeadings(content);
+
 const options = {
   renderNode: {
     [BLOCKS.EMBEDDED_ASSET]: (node: any) => {
-      // Return a marker for image that we'll replace later
       return `<div data-image-url="${node.data.target.fields.file.url}" data-image-alt="${node.data.target.fields.description || ''}"></div>`;
     },
     [BLOCKS.EMBEDDED_ENTRY]: (node: any) => {
@@ -21,15 +35,18 @@ const options = {
     [BLOCKS.PARAGRAPH]: (node: any) => {
       return `<p class="mb-4">${node.content.map((n: any) => n.value).join('')}</p>`;
     },
+    [BLOCKS.HEADING_2]: (node: any) => {
+      const headingText = node.content[0].value;
+      // Créer un ID unique pour le lien d'ancrage
+      const headingId = headingText.toLowerCase().replace(/\s+/g, '-');
+      return `<h2 id="${headingId}" class="text-2xl font-bold mt-8 mb-4">${headingText}</h2>`;
+    }
   }
 };
 
 const htmlContent = documentToHtmlString(content, options);
-
-// Split content for both images and cards
 const splitContent = htmlContent.split(/(<div data-(?:image-url|card-id)="[^"]+(?:"[^"]*")*[^"]*"><\/div>)/);
 
-// Function to extract attributes from marker div
 const extractImageAttributes = (marker: string) => {
   const urlMatch = marker.match(/data-image-url="([^"]+)"/);
   const altMatch = marker.match(/data-image-alt="([^"]*)"/);
@@ -40,12 +57,34 @@ const extractImageAttributes = (marker: string) => {
 };
 ---
 
+<!-- Sommaire -->
+{headings.length > 0 && (
+  <nav class="my-8 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+    <h2 class="text-xl font-bold mb-4">Sommaire</h2>
+    <ul class="space-y-2">
+      {headings.map((heading) => {
+        const headingId = heading.toLowerCase().replace(/\s+/g, '-');
+        return (
+          <li class="group">
+            <CaretRightIcon className="inline-block w-4 h-4 mr-2 text-gray-400 transition-transform duration-200 group-hover:text-gray-800 group-hover:translate-x-0.5" />
+            <a 
+              href={`#${headingId}`}
+              class=" hover:text-gray-800 hover:underline text-base underline-offset-2"
+            >
+              {heading}
+            </a>
+          </li>
+        );
+      })}
+    </ul>
+  </nav>
+)}
+
+<!-- Contenu -->
 {splitContent.map((fragment) => {
   if (!fragment.startsWith('<div data-')) {
-    // Regular content
     return <Fragment set:html={fragment} />;
   } else if (fragment.includes('data-image-url')) {
-    // Image content
     const { url, alt } = extractImageAttributes(fragment);
     return (
       <div class="aspect-video mx-auto mb-4">
@@ -60,7 +99,6 @@ const extractImageAttributes = (marker: string) => {
       </div>
     );
   } else {
-    // Card content
     const cardId = fragment.match(/data-card-id="([^"]+)"/)?.[1];
     const cardData = content.content
       .find((node: any) => 
