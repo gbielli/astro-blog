@@ -6,36 +6,43 @@ import {
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
 
-export default function Navigation() {
+interface NavigationProps {
+  pathname: string;
+  categories: { name: string; path: string }[];
+}
+
+export default function Navigation({ pathname, categories }: NavigationProps) {
+  // Retiré le async ici
+  const isActiveRoute = (categoryPath: string) => {
+    return (
+      pathname === categoryPath ||
+      (pathname === "/" && categoryPath === "/") ||
+      (pathname.startsWith(categoryPath) && categoryPath !== "/")
+    );
+  };
+
+  // Ajouter la catégorie "Tous" au début du tableau
+  const allCategories = [{ name: "Tous", path: "/" }, ...categories];
+
   return (
     <NavigationMenu className="mx-auto">
       <NavigationMenuList className="gap-4">
-        <NavigationMenuItem className="border rounded-md">
-          <NavigationMenuLink className={navigationMenuTriggerStyle()} href="/">
-            Tous
-          </NavigationMenuLink>
-        </NavigationMenuItem>
-        <NavigationMenuItem className="border rounded-md">
-          <NavigationMenuLink
-            className={navigationMenuTriggerStyle()}
-            href="/beaute"
-          >
-            Beauté
-          </NavigationMenuLink>
-        </NavigationMenuItem>
-        <NavigationMenuItem className="border rounded-md">
-          <NavigationMenuLink
-            className={navigationMenuTriggerStyle()}
-            href="/rasage"
-          >
-            Rasage
-          </NavigationMenuLink>
-        </NavigationMenuItem>
-        <NavigationMenuItem className="border rounded-md">
-          <NavigationMenuLink className={navigationMenuTriggerStyle()} href="/">
-            Sport
-          </NavigationMenuLink>
-        </NavigationMenuItem>
+        {allCategories.map((category) => {
+          const isActive = isActiveRoute(category.path);
+          return (
+            <NavigationMenuItem
+              key={category.path}
+              className="border rounded-md"
+            >
+              <NavigationMenuLink
+                className={navigationMenuTriggerStyle({ isActive })}
+                href={category.path}
+              >
+                {category.name}
+              </NavigationMenuLink>
+            </NavigationMenuItem>
+          );
+        })}
       </NavigationMenuList>
     </NavigationMenu>
   );

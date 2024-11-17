@@ -12,7 +12,7 @@ export async function getStaticPaths() {
 
   const categories = [...new Set(entries.items
     .map(post => post.fields.chapter1)
-    .filter(category => category != null && category !== '')
+    .filter(Boolean)
   )];
 
   return categories.map(category => {
@@ -24,7 +24,7 @@ export async function getStaticPaths() {
         
         return {
           title,
-          slug: slugify(chapter1) + '/' + slug,
+          slug: `${slugify(chapter1)}/${slug}`,
           description,
           media: mediaUrl,
           date: new Date(date).toLocaleDateString('fr-FR', {
@@ -40,27 +40,30 @@ export async function getStaticPaths() {
       params: { category: slugify(category.toString()) },
       props: { 
         posts: categoryPosts,
-        originalCategory: category
+        categoryName: category
       }
     };
   });
 }
 
-const { posts, originalCategory } = Astro.props;
+const { posts, categoryName } = Astro.props;
 ---
 
-<Layout title={`Articles dans la catégorie ${originalCategory}`} articles={posts}>
+<Layout 
+  title={`Articles dans la catégorie ${categoryName}`}
+  articles={posts}
+  currentCategory={categoryName}
+>
   <div class="container mx-auto px-4 py-8">
     <div class="grid grid-cols-1 gap-6">
       {posts.map((post) => (
-        <ArticleCard
+        <ArticleCard 
           title={post.title}
           date={post.date}
           description={post.description}
           slug={post.slug}
           chapter1={post.chapter1}
-          mediaUrl={post.media}
-        />
+          mediaUrl={post.media}/>
       ))}
     </div>
   </div>

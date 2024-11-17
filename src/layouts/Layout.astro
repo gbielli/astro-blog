@@ -2,12 +2,20 @@
 import Footer from '@/components/Footer.astro';
 import HeroHeader from '@/components/HeroHeader.astro';
 import Navbar from '@/components/Navbar';
+import { getCategories } from '@/lib/contentful';
 import '@/styles/global.css';
 import ViewTransitions from "astro/components/ViewTransitions.astro";
 
+interface Props {
+  title: string;
+  articles: any[];
+  currentCategory?: string;
+}
 
-const { title, articles } = Astro.props;
+const { title, articles, currentCategory } = Astro.props;
 
+// Récupérer les catégories une seule fois au niveau du layout
+const categories = await getCategories();
 ---
 
 <html lang="fr" class="">
@@ -20,13 +28,13 @@ const { title, articles } = Astro.props;
   <body class="min-h-screen w-full">
     <Navbar client:load />
     <main class="max-w-5xl mx-auto px-4 py-8 pt-20">
-      <HeroHeader articles={articles} />
-        <slot />
+      <HeroHeader 
+        articles={articles} 
+        categories={categories}
+        currentCategory={currentCategory}
+      />
+      <slot />
     </main>
     <Footer />
-
   </body>
 </html>
-
-
-

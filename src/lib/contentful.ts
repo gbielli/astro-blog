@@ -1,3 +1,4 @@
+import { slugify } from "@/lib/utils";
 import type { ContentTypeSys, EntryFieldTypes } from "contentful";
 import { createClient } from "contentful";
 
@@ -94,6 +95,45 @@ export async function getVendor(id: string): Promise<VendorReturn | null> {
     console.error("Error fetching vendor:", error);
     return null;
   }
+}
+
+export async function getCategories() {
+  const entries = await contentfulClient.getEntries<BlogPost>({
+    content_type: "blogPost",
+  });
+
+  const uniqueCategories = [
+    ...new Set(
+      entries.items.map((post) => post.fields.chapter1).filter(Boolean)
+    ),
+  ];
+
+  return uniqueCategories.map((category) => {
+    const categoryTitles: { [key: string]: string } = {
+      beaute: "Guide Beauté Pour Homme",
+      rasage: "L'Art du Rasage Parfait",
+      sport: "Fitness et Performance",
+      // Ajoutez d'autres catégories selon vos besoins
+    };
+
+    const categoryDescriptions: { [key: string]: string } = {
+      beaute:
+        "Découvrez nos conseils experts pour prendre soin de votre peau et de votre apparence.",
+      rasage: "Maîtrisez les techniques de rasage pour un résultat impeccable.",
+      sport: "Atteignez vos objectifs sportifs avec nos conseils d'experts.",
+      // Ajoutez d'autres descriptions selon vos besoins
+    };
+
+    return {
+      name: category,
+      path: `/${slugify(category)}`,
+      title:
+        categoryTitles[category.toLowerCase()] || `Articles sur ${category}`,
+      description:
+        categoryDescriptions[category.toLowerCase()] ||
+        `Découvrez tous nos articles sur ${category}`,
+    };
+  });
 }
 
 export const contentfulClient = createClient({
